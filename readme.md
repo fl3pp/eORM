@@ -14,13 +14,13 @@ There is a configuration file called config.ini inside the ORM Folder.
 
 [folders]
 ; Folder where dynamicaly created classes are saved
-models=C:\xampp\htdocs\model
+models="C:\xampp\htdocs\model"
 
 [database]
 ; database location (full OS Path recommended)
-db=C:\xampp\htdocs\database\db.db
+db="C:\xampp\htdocs\database\db.db"
 ; database script location
-dbscript=C:\xampp\htdocs\database\sql\database.sql
+dbscript="C:\xampp\htdocs\database\sql\database.sql"
 
 [admin_password]
 ; aministratorPassword for direct database operations
