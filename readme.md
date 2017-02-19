@@ -134,3 +134,6 @@ var_dump($eORM->cons_check($project)); // returns false
 $eORM->update($project);
 var_dump($eORM->cons_check($project)); // returns true
 ```
+
+## Roadmap
+- [ ] MySQL - MariaDB support

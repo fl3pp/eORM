@@ -2,7 +2,7 @@
 
 class eORM {
     private $pdo;
-    public $config; //Configuration loaded in Constructor
+    public $config; //Configuration loaded in the Constructor
 
 
     //SQL Operations
