@@ -151,15 +151,17 @@ class eORM {
         return $this->PDOconnect();
     }
 
-    //this Functions will output HTML
-    public function DBinstallation() {
+    //these Functions will output HTML
+    public function admin_check($recreateDB=false) {
         if(!isset($_POST['eORM_adminpassword']) || $_POST['eORM_adminpassword'] != $this->config['admin_password']) {
             echo('
             <p>please enter correct password</p>
             <form action="?" method="post">
-            <input name="eORM_adminpassword" type="password"></input><br>
-            Recreate Database<input type="checkbox" name="eORM_newDatabase" value="recreate Database"><br>
-            <input type="submit" value="GO"/>
+            <input name="eORM_adminpassword" type="password"></input><br>');
+            if ($recreateDB) {
+            echo('Recreate Database<input type="checkbox" name="eORM_newDatabase" value="recreate Database"><br>');
+            }
+            echo('<input type="submit" value="GO"/>
             </form>
             <p>Warning: database will be deleted before recreation</p> 
                     
@@ -167,6 +169,9 @@ class eORM {
             ');
             exit();
         }
+    }
+    public function DBinstallation() {
+        $this->admin_check(true);
         if(isset($_POST['eORM_newDatabase'])) {
             $newDatabase = boolval($_POST['eORM_newDatabase']);
         } else { $newDatabase = false; }
@@ -234,6 +239,7 @@ class eORM {
     }
 
     public function DBdump(){
+        $this->admin_check();
         if (array_key_exists('sqlite_path',$this->config)) {
             $command = "\"".$this->config['sqlite_path']."\"";
         } else { $command = 'sqlite3'; }
