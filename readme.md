@@ -32,15 +32,15 @@ admin_password=testPW
 sqlite_path="C:\Program Files (x86)\sqlite\sqlite3.exe"
 ```
 you can change the file so it fits your needs. 
-After the configuring the file create a new php script, 
-create an eORM object and call `DBinstallation`
+After the configuring the file, create a new php script and
+call `DBinstallation` on a eORM object.
 ``` php
 require('libs/eORM/eORM.php');
 $data = new eORM();
 $data->DBinstallation();
 ```
-The method will ask you for the administrator password and
-eORM will automaticly generate all table classes in the desired
+The function will ask you for the eORM password and 
+will automaticly generate all table classes in the desired
 folder.
 ## manage table objects
 lets assume you generated a database using following script
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS project(
     name VARCHAR(30)
 );
 ```
-you can now create objects with the generated class
+you can now create objects using the generated classes
 ``` php
 $project = new project();
 ```
@@ -68,7 +68,7 @@ $eORM->delete($project);
 the object will automaticly be set to null if the operation was
 successfull.
 ### update object
-simply call `update`
+simply call `update` 
 ``` php
 $eORM->update($project)
 ```
@@ -79,31 +79,31 @@ and an instance object of the desired class.
 query syntax:
 ``` php
 // search after an ID
-$eORM->query(new object(),array('ID'=>3));
+$eORM->query(new project(),array('ID'=>3));
 
 // search for all objects containing the keyword 'test' in the name
-$eORM->query(new object(),array(
+$eORM->query($project(),array(
     'name'=> array(
         'contains'=>'test'
     )
 ));
 
 // search for all objects starting with 'tes'
-$eORM->query(new object(),array(
+$eORM->query(new project(),array(
     'name'=> array(
         'start'=>'tes'
     )
 ));
 
 // search for all objects ending with 'est'
-$eORM->query(new object(),array(
+$eORM->query(new project(),array(
     'name'=> array(
         'end'=>'est'
     )
 ));
 
 //You can also combine several attributes
-$eORM->query(new object(),array(
+$eORM->query(new project(),array(
     'name'=> array(
         'contains'=>'e'
     ),
