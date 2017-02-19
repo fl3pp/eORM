@@ -1,0 +1,7 @@
+# ignore everything
+.vscode
+cnt/
+database/
+model/
+view/
+/*.php
