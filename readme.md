@@ -138,9 +138,6 @@ var_dump($eORM->cons_check($project)); // returns true
 ```
 
 ## Roadmap
-<<<<<<< HEAD
 - [ ] MySQL - MariaDB support
-=======
 - [ ] MySQL - MariaDB support
 - [ ] toJSON, toArray, toCSV support on objects
->>>>>>> b4cd00db60d79ac52ea84c536fb2a01fdd8cdd4a
