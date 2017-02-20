@@ -48,7 +48,7 @@ folder.
 ## manage table objects
 lets assume you generated a database using following script
 ``` SQL
-CREATE TABLE IF NOT EXISTS project(
+CREATE TABLE project(
     ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(30)
 );
