@@ -6,6 +6,7 @@ currently only supporting SQLite Databases
 ## usage rules
 1. never change a dynamicaly created file
 1. always add an 'ID' column in all tables
+1. never add a column named 'sql' in a table
 
 eORM will warn about other mistakes.
 
@@ -76,10 +77,15 @@ $eORM->update($project)
 ```
 
 ### query for objects
-to query objects use the `query` function. Pass an array
-and an instance object of the desired class.
-query syntax:
+to query objects use the `query` function. 
+
+#### query using object and arrays
+This is the most used method to query since it returns objects
+and not arrays.
 ``` php
+// search for all projects
+$eORM->query(new project,array());
+
 // search after an ID
 $eORM->query(new project(),array('ID'=>3));
 
@@ -111,7 +117,55 @@ $eORM->query(new project(),array(
     ),
     'foo'=> 'bar'
 ));
+
+//The OR option is also available (as many times in one query as you want)
+$eORM->query(new project,array(
+    'ID'=>5,
+    'OR',
+    'name'=>array(
+        'end'=>'test'
+    )
+));
+
+//Give attention if you want to search two times for the same column
+$eORM->query(new project,array(
+    'name'=>array(
+        'end'=>'test'
+    ),
+    'name1'=>array(
+        'col'=>'name', 
+        'contains'=>'new'
+    )
+));
+// you have to specify the 'col' in this case, 
+// because the later keys would overwrite the first
+
+// Of course it's also possible to use the 'col' index on
+// querys without double indexes. 
+// The col name will always overridde the key
+$eORM->query(new project,array(
+    'searchattr1'=>array(
+        'col'=>'name',
+        'end'=>'test'
+    ),
+    'OR',
+    'searchattr2'=>array(
+        'col'=>'name', 
+        'contains'=>'new'
+    )
+));
 ```
+#### query using prepared statements
+```php
+$eORM->SQLquery(array(
+    'sql'=>'SELECT * FROM project WHERE ID=:id',
+    ':id'=>3
+));
+```
+Is also possible but it is not recommended since it will
+only respond array and not objects of the classes
+
+#### Offset and Limit
 There are also two optional offset and limit parameters.
 The default values are
 - offset: 0
