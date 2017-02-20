@@ -1,11 +1,13 @@
 # elemental ORM for PHP
-simple object relational mapper for PHP
+Simple Object relational mapper for PHP
 
 currently only supporting SQLite Databases 
 
 ## usage rules
 1. never change a dynamicaly created file
 1. always add an 'ID' column in all tables
+
+eORM will warn about other mistakes.
 
 ## configuration
 There is a configuration file called config.ini inside the ORM Folder.
@@ -43,17 +45,14 @@ The function will ask you for the eORM password and
 will automaticly generate all table classes in the desired
 folder.
 ## manage table objects
-lets assume you created a SQL Database
+lets assume you generated a database using following script
 ``` SQL
-CREATE TABLE project(
+CREATE TABLE IF NOT EXISTS project(
     ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(30)
 );
 ```
-Place the script location inside the `config.ini` and
-use the `DBinstallation` function the generate the database and classes.
-The generated Class `project` will be available in all scripts
-including a eORM object.
+you can now create objects using the generated classes
 ``` php
 $project = new project();
 ```
@@ -137,3 +136,7 @@ var_dump($eORM->cons_check($project)); // returns false
 $eORM->update($project);
 var_dump($eORM->cons_check($project)); // returns true
 ```
+
+## Roadmap
+- [ ] MySQL - MariaDB support
+- [ ] toJSON, toArray, toCSV support on objects
