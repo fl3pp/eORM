@@ -6,25 +6,57 @@ class eORM {
 
 
     //SQL Operations
-    public function SQLexecute($sql) {
-        if($this->ConnectionStatus()) {
-            try {
-                $result = $this->pdo->exec($sql);
-            } catch (Exception $e) { throw $e; }
-            if ($result > 0) {
-                if (substr($sql,0,6) == 'INSERT') { 
-                    return intval($this->pdo->lastInsertId());
-                } else { return true; }
-            } else {
-                return false;
+    public function SQLexecute($param) {
+        if ($this->ConnectionStatus()) {
+            if (is_array($param)){
+                $sql = $param['sql'];
+                unset($param['sql']);
+            } elseif (is_string($param)) {
+                $sql = $param;
+            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
+        }
+        $statement = $this->pdo->prepare($sql);
+        if(is_array($param) && count($param) > 0) {
+            foreach($param as $key=>$value){
+                if(is_numeric($value)){
+                    $statement->bindValue($key,$value,PDO::PARAM_INT);
+                } else {
+                    $statement->bindValue($key,$value,PDO::PARAM_STR);
+                }
             }
         }
+        try {
+            $result = $statement->execute();
+        } catch (Exception $e) { throw $e; }
+        if ($result > 0) {
+            if (strpos($sql,'INSERT') !== false ) { 
+                return intval($this->pdo->lastInsertId());
+            } else { return true; }
+        } else {
+            return false;
+        }
     }
-
-    public function SQLquery($sql) {
+    
+    public function SQLquery($param) {
         if ($this->ConnectionStatus()) {
+            if (is_array($param)){
+                $sql = $param['sql'];
+                unset($param['sql']);
+            } elseif (is_string($param)) {
+                $sql = $param;
+            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
+            $statement = $this->pdo->prepare($sql);
+            if(is_array($param) && count($param) > 0) {
+                foreach($param as $key=>$value){
+                    if(is_numeric($value)){
+                        $statement->bindValue($key,$value,PDO::PARAM_INT);
+                    } else {
+                        $statement->bindValue($key,$value,PDO::PARAM_STR);
+                    }
+                }
+            }
             try {
-                $statement = $this->pdo->query($sql);
+                $statement->execute();
                 return $statement->fetchAll();
             } catch (Exception $e) {
                 throw $e;
@@ -34,20 +66,21 @@ class eORM {
 
     //Object SQL Operations
     public function tableObj_check($testObj) {
-        if(get_parent_class($testObj) == 'eORM_table'){
+        if(get_parent_class($testObj) == 'eORM_table') {
             return true;
         } else {
-            return false;
+            trigger_error('eORM CRUD functions only available on eORM objects'); 
+            exit;
         }
     }
 
     public function insert(&$insertObj){
-        if (! $this->tableObj_check($insertObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($insertObj);
         $insertObj->ID = $this->SQLexecute($insertObj->insertSQL());
     }
 
     public function delete(&$deleteObj) {
-        if (! $this->tableObj_check($deleteObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($deleteObj);
         if($this->SQLexecute($deleteObj->deleteSQL())) {
             $deleteObj = null;
             return true;
@@ -55,12 +88,12 @@ class eORM {
     }
 
     public function update($updateObj) {
-        if (! $this->tableObj_check($updateObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($updateObj);
         return $this->SQLexecute($updateObj->updateSQL());
     }
 
     public function query($classObj, $parameters,$offset = 0,$limit = 100){
-        if (! $this->tableObj_check($classObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($classObj);
         $class = get_class($classObj);
         try {
             $queryResult = $this->SQLquery($class::selectSQL($parameters,$offset,$limit));
