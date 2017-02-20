@@ -7,6 +7,8 @@ currently only supporting SQLite Databases
 1. never change a dynamicaly created file
 1. always add an 'ID' column in all tables
 
+eORM will warn about other mistakes.
+
 ## configuration
 There is a configuration file called config.ini inside the ORM Folder.
 ``` ini
@@ -137,3 +139,4 @@ var_dump($eORM->cons_check($project)); // returns true
 
 ## Roadmap
 - [ ] MySQL - MariaDB support
+- [ ] toJSON, toArray, toCSV support on objects

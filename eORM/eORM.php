@@ -57,17 +57,18 @@ class eORM {
         if(get_parent_class($testObj) == 'eORM_table'){
             return true;
         } else {
-            return false;
+            trigger_error('call eORM only available on eORM objects'); 
+            exit;
         }
     }
 
     public function insert(&$insertObj){
-        if (! $this->tableObj_check($insertObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($insertObj);
         $insertObj->ID = $this->SQLexecute($insertObj->insertSQL());
     }
 
     public function delete(&$deleteObj) {
-        if (! $this->tableObj_check($deleteObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($deleteObj);
         if($this->SQLexecute($deleteObj->deleteSQL())) {
             $deleteObj = null;
             return true;
@@ -75,12 +76,12 @@ class eORM {
     }
 
     public function update($updateObj) {
-        if (! $this->tableObj_check($updateObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($updateObj);
         return $this->SQLexecute($updateObj->updateSQL());
     }
 
     public function query($classObj, $parameters,$offset = 0,$limit = 100){
-        if (! $this->tableObj_check($classObj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+        $this->tableObj_check($classObj);
         $class = get_class($classObj);
         try {
             $queryResult = $this->SQLquery($class::selectSQL($parameters,$offset,$limit));
