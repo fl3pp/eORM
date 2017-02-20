@@ -86,11 +86,13 @@ and not arrays.
 // search for all projects
 $eORM->query(new project,array());
 
+
 // search after an ID
-$eORM->query(new project(),array('ID'=>3));
+// you can also pass an instance of the desired class as parameter
+$eORM->query($project(),array('ID'=>3));
 
 // search for all objects containing the keyword 'test' in the name
-$eORM->query($project(),array(
+$eORM->query(new project(),array(
     'name'=> array(
         'contains'=>'test'
     )
@@ -118,16 +120,18 @@ $eORM->query(new project(),array(
     'foo'=> 'bar'
 ));
 
-//The OR option is also available (as many times in one query as you want)
+// The OR option is also available (as many times in one query as you want)
 $eORM->query(new project,array(
     'ID'=>5,
     'OR',
     'name'=>array(
         'end'=>'test'
-    )
+    ),
+    'OR',
+    'foo'=>'bar'
 ));
 
-//Give attention if you want to search two times for the same column
+// attention: specify the 'col' key if you want to search for the same column two times
 $eORM->query(new project,array(
     'name'=>array(
         'end'=>'test'
@@ -162,8 +166,9 @@ $eORM->SQLquery(array(
     ':id'=>3
 ));
 ```
-Is also possible but it is not recommended since it will
-only respond array and not objects of the classes
+Is also possible but it is not recommended since
+eORM will execute all querys using bindings and the response will 
+contain arrays and not objects of the classes
 
 #### Offset and Limit
 There are also two optional offset and limit parameters.
@@ -192,6 +197,5 @@ var_dump($eORM->cons_check($project)); // returns true
 ```
 
 ## Roadmap
-- [ ] MySQL - MariaDB support
 - [ ] MySQL - MariaDB support
 - [ ] toJSON, toArray, toCSV support on objects
