@@ -6,36 +6,48 @@ class eORM {
 
 
     //SQL Operations
-    public function SQLexecute($sql, $bindings = array()) {
-        if($this->ConnectionStatus()) {
-            $statement = $this->pdo->prepare($sql);
-            if (count($binding) > 0) {
-                foreach($binding as $key=>$value) {
-                    if(is_numeric($value)){
-                        $statement->bindValue($key,$value,PDO::PARAM_INT);
-                    } else {
-                        $statement->bindValue($key,$value,PDO::PARAM_STR);
-                    }
+    public function SQLexecute($param) {
+        if ($this->ConnectionStatus()) {
+            if (is_array($param)){
+                $sql = $param['sql'];
+                unset($param['sql']);
+            } elseif (is_string($param)) {
+                $sql = $param;
+            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
+        }
+        $statement = $this->pdo->prepare($sql);
+        if(is_array($param) && count($param) > 0) {
+            foreach($param as $key=>$value){
+                if(is_numeric($value)){
+                    $statement->bindValue($key,$value,PDO::PARAM_INT);
+                } else {
+                    $statement->bindValue($key,$value,PDO::PARAM_STR);
                 }
-            }
-            try {
-                $result = $this->pdo->execute($sql);
-            } catch (Exception $e) { throw $e; }
-            if ($result > 0) {
-                if (strpos($sql,'INSERT') !== false ) { 
-                    return intval($this->pdo->lastInsertId());
-                } else { return true; }
-            } else {
-                return false;
             }
         }
+        try {
+            $result = $statement->execute();
+        } catch (Exception $e) { throw $e; }
+        if ($result > 0) {
+            if (strpos($sql,'INSERT') !== false ) { 
+                return intval($this->pdo->lastInsertId());
+            } else { return true; }
+        } else {
+            return false;
+        }
     }
-
-    public function SQLquery($sql,$bindings = array()) {
+    
+    public function SQLquery($param) {
         if ($this->ConnectionStatus()) {
+            if (is_array($param)){
+                $sql = $param['sql'];
+                unset($param['sql']);
+            } elseif (is_string($param)) {
+                $sql = $param;
+            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
             $statement = $this->pdo->prepare($sql);
-            if (count($binding) > 0) {
-                foreach($binding as $key=>$value) {
+            if(is_array($param) && count($param) > 0) {
+                foreach($param as $key=>$value){
                     if(is_numeric($value)){
                         $statement->bindValue($key,$value,PDO::PARAM_INT);
                     } else {
@@ -44,7 +56,7 @@ class eORM {
                 }
             }
             try {
-                $statement = $statement->execute();
+                $statement->execute();
                 return $statement->fetchAll();
             } catch (Exception $e) {
                 throw $e;
@@ -54,10 +66,10 @@ class eORM {
 
     //Object SQL Operations
     public function tableObj_check($testObj) {
-        if(get_parent_class($testObj) == 'eORM_table'){
+        if(get_parent_class($testObj) == 'eORM_table') {
             return true;
         } else {
-            trigger_error('call eORM only available on eORM objects'); 
+            trigger_error('eORM CRUD functions only available on eORM objects'); 
             exit;
         }
     }
