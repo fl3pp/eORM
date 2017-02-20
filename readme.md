@@ -1,5 +1,5 @@
 # elemental ORM for PHP
-Simple Object relational mapper for PHP
+simple object relational mapper for PHP
 
 currently only supporting SQLite Databases 
 
@@ -43,14 +43,17 @@ The function will ask you for the eORM password and
 will automaticly generate all table classes in the desired
 folder.
 ## manage table objects
-lets assume you generated a database using following script
+lets assume you created a SQL Database
 ``` SQL
-CREATE TABLE IF NOT EXISTS project(
+CREATE TABLE project(
     ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(30)
 );
 ```
-you can now create objects using the generated classes
+Place the script location inside the `config.ini` and
+use the `DBinstallation` function the generate the database and classes.
+The generated Class `project` will be available in all scripts
+including a eORM object.
 ``` php
 $project = new project();
 ```
