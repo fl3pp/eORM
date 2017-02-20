@@ -37,7 +37,7 @@ abstract class eORM_table {
             if($key != "ID" && $key != "tablename") {
                 if ($i > 0 && $i != count($this) ) { $updateSQL .= ","; }
                 if (is_numeric($value)) {
-                    $updateSQL .= "$key=$value ";
+                    $updateSQL .= "$key=:$value ";
                 } else {
                     $updateSQL .= "$key='$value' ";
                 }

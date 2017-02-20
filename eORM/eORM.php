@@ -6,13 +6,23 @@ class eORM {
 
 
     //SQL Operations
-    public function SQLexecute($sql) {
+    public function SQLexecute($sql, $bindings = array()) {
         if($this->ConnectionStatus()) {
+            $statement = $this->pdo->prepare($sql);
+            if (count($binding) > 0) {
+                foreach($binding as $key=>$value) {
+                    if(is_numeric($value)){
+                        $statement->bindValue($key,$value,PDO::PARAM_INT);
+                    } else {
+                        $statement->bindValue($key,$value,PDO::PARAM_STR);
+                    }
+                }
+            }
             try {
-                $result = $this->pdo->exec($sql);
+                $result = $this->pdo->execute($sql);
             } catch (Exception $e) { throw $e; }
             if ($result > 0) {
-                if (substr($sql,0,6) == 'INSERT') { 
+                if (strpos($sql,'INSERT') !== false ) { 
                     return intval($this->pdo->lastInsertId());
                 } else { return true; }
             } else {
@@ -21,10 +31,20 @@ class eORM {
         }
     }
 
-    public function SQLquery($sql) {
+    public function SQLquery($sql,$bindings = array()) {
         if ($this->ConnectionStatus()) {
+            $statement = $this->pdo->prepare($sql);
+            if (count($binding) > 0) {
+                foreach($binding as $key=>$value) {
+                    if(is_numeric($value)){
+                        $statement->bindValue($key,$value,PDO::PARAM_INT);
+                    } else {
+                        $statement->bindValue($key,$value,PDO::PARAM_STR);
+                    }
+                }
+            }
             try {
-                $statement = $this->pdo->query($sql);
+                $statement = $statement->execute();
                 return $statement->fetchAll();
             } catch (Exception $e) {
                 throw $e;
