@@ -134,7 +134,7 @@ class eORM {
 
     //class functions
     public function destroy() {
-        @unlink($this->config['db']);
+        unlink($this->config['db']);
         if(file_exists($this->config['db'])) {
             return false;
         } else {
@@ -184,6 +184,30 @@ class eORM {
         return $this->PDOconnect();
     }
 
+    public function createObjects(){
+        $htmlResponse = '<h3>Dynamical Class Generation</h3>';
+        @unlink('model/map.ini');
+        if(!file_exists('model/map.ini')) { 
+            $htmlResponse .= 'old map deleted';
+        } else {
+            $htmlResponse .= 'cannot delete old map';
+        } $htmlResponse = '<br>';
+        foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
+            if ($table['name'] == 'sqlite_sequence') { continue; }
+            $htmlResponse .= 'class: '.$table['name'].'<br>';
+            
+            $classFile = '<?php class '.$table['name'].' extends eORM_table {';
+            foreach($this->SQLquery('PRAGMA table_info('.$table['name'].');') as $tableinfo){
+                $classFile .= 'public $'.$tableinfo['name'].';';
+            }
+            $classFile .= 'public static $tablename = \''.$table['name'].'\'; } ?>';
+
+            file_put_contents('model/'.$table['name'].'.php',$classFile);
+            file_put_contents('model/map.ini','classfiles[]="'.$table['name'].".php\"\n",FILE_APPEND);
+        }
+        return $htmlResponse;
+    }
+
     //these Functions will output HTML
     public function admin_check($recreateDB=false) {
         if(!isset($_POST['eORM_adminpassword']) || $_POST['eORM_adminpassword'] != $this->config['admin_password']) {
@@ -203,72 +227,61 @@ class eORM {
             exit();
         }
     }
-    public function DBinstallation() {
-        $this->admin_check(true);
-        if(isset($_POST['eORM_newDatabase'])) {
-            $newDatabase = boolval($_POST['eORM_newDatabase']);
-        } else { $newDatabase = false; }
-        if($newDatabase) {
-            echo('<h3>destroy Database</h3>');
-            if ($this->destroy()) {
-                echo('databese deleted');
-            } else {
-                echo('cannot delete database');
-            }
-        }
-        echo('<h3>Database Connection</h3>');
-        if ($this->PDOconnect()) {
-            echo('connection successfully established');
-        } else {
-            echo('error: cannot connect to database');
-        }
-        if($newDatabase) {
-            echo('<h3>Database Script</h3>');
-            try {
-                $sqlscript = file_get_contents($this->config['dbscript']);;
-            } catch(Exception $e) {
-                trigger_error('Cannot read database script');
-                throw $e;
-                exit;
-            }
-            echo(str_replace("\n",'<br>',$sqlscript));
-            echo('<h3>Script execution</h3>');
-            try {
-                if($this->SQLexecute($sqlscript)) {
-                    echo ("script executed successfully");
-                } else {
-                    echo ("script could not be executed");
-                }
-            } catch (Exception $e) {
-                echo ("error in script: $e");
-                exit();
-            }
-        }
-        echo('<h3>Database Tables</h3>');
-        foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
-            echo($table['name']."<br>");
-        }
-        echo('<h3>Dynamical Class Generation</h3>');
-        @unlink('model/map.ini');
-        if(!file_exists('model/map.ini')) { 
-            echo('old map deleted');
-        } else {
-            echo('cannot delete old map');
-        } echo('<br>');
-        foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
-            if ($table['name'] == 'sqlite_sequence') { continue; }
-            echo('class: '.$table['name'].'<br>');
-            
-            $classFile = '<?php class '.$table['name'].' extends eORM_table {';
-            foreach($this->SQLquery('PRAGMA table_info('.$table['name'].');') as $tableinfo){
-                $classFile .= 'public $'.$tableinfo['name'].';';
-            }
-            $classFile .= 'public static $tablename = \''.$table['name'].'\'; } ?>';
 
-            file_put_contents('model/'.$table['name'].'.php',$classFile);
-            file_put_contents('model/map.ini','classfiles[]="'.$table['name'].".php\"\n",FILE_APPEND);
-        }
-        
+    public function DBinstallation($sqlscript = '') {
+        if($sqlscript != '') {
+            $this->destroy();
+            $this->PDOconnect();
+            $this->SQLexecute($sqlscript);
+            $this->createObjects();
+        } else {
+            $this->admin_check(true);
+            if(isset($_POST['eORM_newDatabase'])) {
+                $newDatabase = boolval($_POST['eORM_newDatabase']);
+            } else { $newDatabase = false; }
+            if($newDatabase) {
+                echo('<h3>destroy Database</h3>');
+                if ($this->destroy()) {
+                    echo('database deleted');
+                } else {
+                    echo('cannot delete database');
+                    echo('<br>this might cause some errors during the sql execution');
+                }
+            }
+            echo('<h3>Database Connection</h3>');
+            if ($this->PDOconnect()) {
+                echo('connection successfully established');
+            } else {
+                echo('error: cannot connect to database');
+            }
+            if($newDatabase) {
+                echo('<h3>Database Script</h3>');
+                try {
+                    $sqlscript = file_get_contents($this->config['dbscript']);
+                } catch(Exception $e) {
+                    trigger_error('Cannot read database script');
+                    throw $e;
+                    exit;
+                }
+                echo(str_replace("\n",'<br>',$sqlscript));
+                echo('<h3>Script execution</h3>');
+                try {
+                    if($this->SQLexecute($sqlscript)) {
+                        echo ("script executed successfully");
+                    } else {
+                        echo ("script could not be executed");
+                    }
+                } catch (Exception $e) {
+                    echo ("error in script: $e");
+                    exit();
+                }
+            }
+            echo('<h3>Database Tables</h3>');
+            foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
+                echo($table['name']."<br>");
+            }
+            echo($this->createObjects());
+        }    
     }
 
     public function DBdump(){

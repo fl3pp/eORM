@@ -5,7 +5,7 @@ currently only supporting SQLite Databases
 
 ## usage rules
 1. never change a dynamicaly created file
-1. always add an 'ID' column in all tables
+1. always add an 'ID' autoincrement column in all tables
 1. never add a column named 'sql' in a table
 
 eORM will warn about other mistakes.
@@ -45,6 +45,14 @@ $data->DBinstallation();
 The function will ask you for the eORM password and 
 will automaticly generate all table classes in the desired
 folder.
+
+You can also pass a SQL script as parameter. This is not recommended
+because it will skip the password check, you'll have to pass the
+script everytime executing the installation process, the script
+will always override the existing databases, there is no
+HTML output to check the status of the operations and the 
+function won't check each operations success.
+
 ## manage table objects
 lets assume you generated a database using following script
 ``` SQL
@@ -52,6 +60,10 @@ CREATE TABLE project(
     ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(30)
 );
+```
+then always call the 'connect()' function before using eORM
+``` php
+$eORM->connect();
 ```
 you can now create objects using the generated classes
 ``` php
