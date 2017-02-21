@@ -1,0 +1,159 @@
+
+<!-- saved from url=(0032)http://localhost/tests/test1.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>
+<pre>require('eORM/eORM.php');
+$eORM = new eORM();
+</pre>
+
+<h3>database creation</h3>
+<pre>$eORM-&gt;DBinstallation('
+CREATE TABLE project(
+    ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(30)
+);
+');
+</pre>
+Connection Status: <pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:29:</small><small>boolean</small> <font color="#75507b">true</font>
+</pre>
+<h3>create objects</h3>
+<pre>$projects = array(); 
+for ($i = 0; $i &lt; 5; $i++) {
+    $projects[$i] = new project;
+    $projects[$i]-&gt;name = "name$i";
+}
+</pre>
+$projects dump<pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:46:</small>
+<b>array</b> <i>(size=5)</i>
+  0 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>3</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <font color="#3465a4">null</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name0'</font> <i>(length=5)</i>
+  1 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>4</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <font color="#3465a4">null</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name1'</font> <i>(length=5)</i>
+  2 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>5</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <font color="#3465a4">null</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name2'</font> <i>(length=5)</i>
+  3 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>6</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <font color="#3465a4">null</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name3'</font> <i>(length=5)</i>
+  4 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>7</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <font color="#3465a4">null</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name4'</font> <i>(length=5)</i>
+</pre>
+<h3>save objects</h3>
+<pre>foreach ($projects as $project){
+    $eORM-&gt;insert($project);
+} 
+</pre>
+$projects dump<pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:59:</small>
+<b>array</b> <i>(size=5)</i>
+  0 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>3</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">1</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name0'</font> <i>(length=5)</i>
+  1 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>4</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">2</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name1'</font> <i>(length=5)</i>
+  2 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>5</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">3</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name2'</font> <i>(length=5)</i>
+  3 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>6</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">4</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name3'</font> <i>(length=5)</i>
+  4 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>7</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">5</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name4'</font> <i>(length=5)</i>
+</pre>
+<h3>query objects</h3>
+<h4>all projects</h4>
+<pre>$query = $eORM-&gt;query(new project(),array());
+</pre>
+$query dump<pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:69:</small>
+<b>array</b> <i>(size=5)</i>
+  0 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>9</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">1</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name0'</font> <i>(length=5)</i>
+  1 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>10</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">2</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name1'</font> <i>(length=5)</i>
+  2 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>11</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">3</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name2'</font> <i>(length=5)</i>
+  3 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>12</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">4</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name3'</font> <i>(length=5)</i>
+  4 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>13</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">5</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name4'</font> <i>(length=5)</i>
+</pre>
+<h4>ID 2 OR 4 OR 5</h4>
+<pre>$query = $eORM-&gt;query(new project(),array(
+    'crit1'=&gt;array(
+        'col'=&gt;'ID',
+        'is'=&gt;2
+    ), 'OR',
+    'crit2'=&gt;array(
+        'col'=&gt;'ID',
+        'is'=&gt;4
+    ), 'OR',
+    'crit3'=&gt;array(
+        'col'=&gt;'ID',
+        'is'=&gt;5
+    )
+));
+</pre>
+$query dump<pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:104:</small>
+<b>array</b> <i>(size=3)</i>
+  0 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>14</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">2</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name1'</font> <i>(length=5)</i>
+  1 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>15</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">4</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name3'</font> <i>(length=5)</i>
+  2 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>16</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">5</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name4'</font> <i>(length=5)</i>
+</pre>
+<h4>ID 2 OR name contains 4</h4>
+<pre>$query = $eORM-&gt;query(new project(),array(
+    'crit1'=&gt;array(
+        'col'=&gt;'ID',
+        'is'=&gt;2
+    ), 'OR',
+    'crit2'=&gt;array(
+        'col'=&gt;'name',
+        'contains'=&gt;'4'
+    )
+));</pre>
+$query dump<pre class="xdebug-var-dump" dir="ltr"><small>C:\xampp\htdocs\tests\test1.php:130:</small>
+<b>array</b> <i>(size=2)</i>
+  0 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>12</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">2</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name1'</font> <i>(length=5)</i>
+  1 <font color="#888a85">=&gt;</font> 
+    <b>object</b>(<i>project</i>)[<i>11</i>]
+      <i>public</i> 'ID' <font color="#888a85">=&gt;</font> <small>int</small> <font color="#4e9a06">5</font>
+      <i>public</i> 'name' <font color="#888a85">=&gt;</font> <small>string</small> <font color="#cc0000">'name4'</font> <i>(length=5)</i>
+</pre>
+
+
+
+</body></html>

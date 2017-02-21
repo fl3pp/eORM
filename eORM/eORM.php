@@ -186,8 +186,8 @@ class eORM {
 
     public function createObjects(){
         $htmlResponse = '<h3>Dynamical Class Generation</h3>';
-        @unlink('model/map.ini');
-        if(!file_exists('model/map.ini')) { 
+        @unlink($this->config['models'].'/map.ini');
+        if(!file_exists($this->config['models'].'/map.ini')) { 
             $htmlResponse .= 'old map deleted';
         } else {
             $htmlResponse .= 'cannot delete old map';
@@ -202,8 +202,8 @@ class eORM {
             }
             $classFile .= 'public static $tablename = \''.$table['name'].'\'; } ?>';
 
-            file_put_contents('model/'.$table['name'].'.php',$classFile);
-            file_put_contents('model/map.ini','classfiles[]="'.$table['name'].".php\"\n",FILE_APPEND);
+            file_put_contents($this->config['models'].'/'.$table['name'].'.php',$classFile);
+            file_put_contents($this->config['models'].'/map.ini','classfiles[]="'.$table['name'].".php\"\n",FILE_APPEND);
         }
         return $htmlResponse;
     }

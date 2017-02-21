@@ -143,29 +143,24 @@ $eORM->query(new project,array(
     'foo'=>'bar'
 ));
 
-// attention: specify the 'col' key if you want to search for the same column two times
+// you can also specify the column 'col' attribute, the next example 
+// will explain why you could need it.
+// The col name will always overridde the key name
+$query = $eORM->query(new project(),array(
+    'crit1'=>array(
+        'col'=>'ID',
+        'is'=>2
+    )
+));
+// use the 'is' keyword to search for a exact match when using 'col'
+
+// The 'col' key is needed if you want to search for the same column two times
+// because the later keys would overwrite the first 
 $eORM->query(new project,array(
     'name'=>array(
         'end'=>'test'
     ),
     'name1'=>array(
-        'col'=>'name', 
-        'contains'=>'new'
-    )
-));
-// you have to specify the 'col' in this case, 
-// because the later keys would overwrite the first
-
-// Of course it's also possible to use the 'col' index on
-// querys without double indexes. 
-// The col name will always overridde the key
-$eORM->query(new project,array(
-    'searchattr1'=>array(
-        'col'=>'name',
-        'end'=>'test'
-    ),
-    'OR',
-    'searchattr2'=>array(
         'col'=>'name', 
         'contains'=>'new'
     )

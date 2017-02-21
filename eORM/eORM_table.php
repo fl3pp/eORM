@@ -44,6 +44,9 @@ abstract class eORM_table {
                     } elseif(array_key_exists('end',$value)) {
                         $sqlSelect .= "$col LIKE :$key".$i;
                         $returnArr[":$key".$i] = '%'.$value['end'];
+                    } elseif(array_key_exists('is',$value)) {
+                        $sqlSelect .= "$col=:$key".$i;
+                        $returnArr[":$key".$i] = $value['is'];
                     }
                 } elseif($value == 'OR') {} 
                 else {
