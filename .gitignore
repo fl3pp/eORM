@@ -3,5 +3,7 @@
 cnt/
 database/
 model/
+models/
 view/
 /*.php
+/*.sql
