@@ -58,6 +58,28 @@ foreach ($projects as $project){
 </pre>
 $projects dump<?php var_dump($projects) ?>
 
+<h3>consistency check</h3>
+<pre>
+    $project = new project();
+    $project->name = 'old name';
+    $eORM->insert($project);
+    var_dump($eORM->cons_check($project)); // returns true
+    $project->name = "new name";
+    var_dump($eORM->cons_check($project)); // returns false
+    $eORM->update($project);
+    var_dump($eORM->cons_check($project)); // returns true
+</pre>
+<?php
+    $project = new project();
+    $project->name = 'old name';
+    $eORM->insert($project);
+    var_dump($eORM->cons_check($project)); // returns true
+    $project->name = "new name";
+    var_dump($eORM->cons_check($project)); // returns false
+    $eORM->update($project);
+    var_dump($eORM->cons_check($project)); // returns true
+?>
+
 <h3>query objects</h3>
 <h4>all projects</h4>
 <?php 
@@ -128,6 +150,7 @@ $query = $eORM->query(new project(),array(
     )
 ));</pre>
 $query dump<?php var_dump($query) ?>
+
 
 
 
