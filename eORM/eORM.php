@@ -134,7 +134,7 @@ class eORM {
 
     //class functions
     public function destroy() {
-        unlink($this->config['db']);
+        @unlink($this->config['db']);
         if(file_exists($this->config['db'])) {
             return false;
         } else {
