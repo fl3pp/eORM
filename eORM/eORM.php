@@ -306,6 +306,16 @@ class eORM {
             exit;
         }
      }
+
+    public static function __set_state($state) {
+        $newObj = new static();
+        if(is_array($state)) {
+            foreach($state as $key=>$value){
+                $newObj->$key = $value;
+            }
+        } else { trigger_error('wrong parameter supplied in magic __set_state'); }
+        return $newObj;
+    }
 }
 
 ?>
