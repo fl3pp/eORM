@@ -125,7 +125,44 @@ class basic extends TestCase
         );
         $this->assertEquals($expResult,$query);
     }
+
+    /**
+    * @depends test_dbInstallation
+    * @depends test_insertations
+    */
+    public function test_query3($eORM) {
+        $expected = array (
+        0 =>
+        project::__set_state(array(
+            'ID' => 2,
+            'name' => 'name1',
+        )),
+        1 =>
+        project::__set_state(array(
+            'ID' => 4,
+            'name' => 'name3',
+        )),
+        2 =>
+        project::__set_state(array(
+            'ID' => 5,
+            'name' => 'name4',
+        )),
+        );
+        $query = $eORM->query(new project(),array(
+            'crit1'=>array(
+                'col'=>'ID',
+                'is'=>2
+            ), 'OR',
+            'crit2'=>array(
+                'col'=>'ID',
+                'is'=>4
+            ), 'OR',
+            'crit3'=>array(
+                'col'=>'ID',
+                'is'=>5
+            )
+        ));
+        $this->assertEquals($expected,$query);
+    }
 }
-
-
 ?>
