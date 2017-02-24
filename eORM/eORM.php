@@ -77,6 +77,24 @@ class eORM extends eORM_obj {
         }
     }
 
+    public function SQLscript($script) {
+        if ($this->ConnectionStatus()) {
+            if (!is_string($script)){
+                trigger_error('wrong parameter supplied in SQLscript');exit;
+            }
+            $commands = explode(';',$script);
+            $success = true;
+            foreach($commands as $command) {
+                try {
+                    $this->pdo->exec($command);
+                } catch (Exception $e) {
+                    $success = false;
+                }
+            }
+            return $success;
+        }
+    }
+
     //Object SQL Operations
     public function tableObj_check($testObj) {
         if(get_parent_class($testObj) == 'eORM_table') {
@@ -171,6 +189,7 @@ class eORM extends eORM_obj {
         if (!$this->ConnectionStatus()){
             if(array_key_exists('db', $this->config)) {
                 try {
+                    print($this->config['db']);
                     $this->pdo = new \PDO('sqlite:'.$this->config['db']);
                     $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 } catch(\PDOException $e) {
@@ -245,7 +264,7 @@ class eORM extends eORM_obj {
         if($sqlscript != '') {
             $this->destroy();
             $this->PDOconnect();
-            $this->SQLexecute($sqlscript);
+            $this->SQLscript($sqlscript);
             $this->createObjects();
         } else {
             $this->admin_check(true);
@@ -279,7 +298,7 @@ class eORM extends eORM_obj {
                 echo(str_replace("\n",'<br>',$sqlscript));
                 echo('<h3>Script execution</h3>');
                 try {
-                    if($this->SQLexecute($sqlscript)) {
+                    if($this->SQLscript($sqlscript)) {
                         echo ("script executed successfully");
                     } else {
                         echo ("script could not be executed");
@@ -293,7 +312,7 @@ class eORM extends eORM_obj {
             foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
                 echo($table['name']."<br>");
             }
-            echo($this->createObjects());
+            echo('<h3>Object Creation</h3>'.$this->createObjects());
         }    
     }
 

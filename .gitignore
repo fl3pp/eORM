@@ -5,6 +5,8 @@ database/
 model/
 models/
 view/
+db/
 /*.php
 /*.sql
 *.db
+*.ini
