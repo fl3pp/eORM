@@ -9,4 +9,4 @@ db/
 /*.php
 /*.sql
 *.db
-*.ini
+eORM/config.ini
