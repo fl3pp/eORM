@@ -143,11 +143,14 @@ class eORM {
 
 
     //constructor
-    public function __construct() {
+    public function __construct($configpath = '') {
         require('sys/eORM_db.php');
         require('sys/eORM_table.php');
+        if ($configpath == '') {
+            $configpath = 'config.ini';
+        }
         try {
-            $this->config = parse_ini_file('config.ini',true);
+            $this->config = parse_ini_file($configpath,true);
         } catch(Exception $e) { 
             throw new Exception("configure config.ini before using eORM");
             throw $e; 

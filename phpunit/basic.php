@@ -21,6 +21,7 @@ class basic extends TestCase
             ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             name VARCHAR(30)
         );
+        CREATE INDEX iname on project(name);
         ');
         $eORM->start();
         $this->assertTrue($eORM->status());
