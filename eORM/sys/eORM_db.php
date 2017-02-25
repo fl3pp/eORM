@@ -6,7 +6,7 @@ abstract class eORM_db {
     abstract function query($param);
     abstract function connect();
     abstract function tables();
-    
+    abstract function conStatus();
 
 
     public function __construct($config){

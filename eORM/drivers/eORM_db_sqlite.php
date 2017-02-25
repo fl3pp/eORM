@@ -1,7 +1,7 @@
 <?php
 class eORM_db_sqlite extends eORM_db {
     private $pdoCon;
-    private $path;
+    public $path;
 
     //Implementations
     public function conStatus(){
