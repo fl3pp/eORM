@@ -1,342 +1,171 @@
 <?php
 
 //use for magic functions
-class eORM_obj {
-    public static function __set_state($state) {
-        $newObj = new static();
-        if(is_array($state)) {
-            foreach($state as $key=>$value){
-                $newObj->$key = $value;
-            }
-        } else { trigger_error('wrong parameter supplied in magic __set_state'); }
-        return $newObj;
-    }
-}
 
-class eORM extends eORM_obj {
-    private $pdo;
+
+class eORM {
+    public $database;
     public $config; //Configuration loaded in the Constructor
 
 
-    //SQL Operations
-    public function SQLexecute($param) {
-        if ($this->ConnectionStatus()) {
-            if (is_array($param)){
-                $sql = $param['sql'];
-                unset($param['sql']);
-            } elseif (is_string($param)) {
-                $sql = $param;
-            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
-        }
-        $statement = $this->pdo->prepare($sql);
-        if(is_array($param) && count($param) > 0) {
-            foreach($param as $key=>$value){
-                if(is_numeric($value)){
-                    $statement->bindValue($key,$value,PDO::PARAM_INT);
-                } else {
-                    $statement->bindValue($key,$value,PDO::PARAM_STR);
-                }
-            }
-        }
-        try {
-            $result = $statement->execute();
-        } catch (Exception $e) { throw $e; }
-        if ($result > 0) {
-            if (strpos($sql,'INSERT') !== false ) { 
-                return intval($this->pdo->lastInsertId());
-            } else { return true; }
-        } else {
-            return false;
-        }
-    }
-    
-    public function SQLquery($param) {
-        if ($this->ConnectionStatus()) {
-            if (is_array($param)){
-                $sql = $param['sql'];
-                unset($param['sql']);
-            } elseif (is_string($param)) {
-                $sql = $param;
-            } else { trigger_error('wrong parameter supplied in SQLexecute');exit; }
-            $statement = $this->pdo->prepare($sql);
-            if(is_array($param) && count($param) > 0) {
-                foreach($param as $key=>$value){
-                    if(is_numeric($value)){
-                        $statement->bindValue($key,$value,PDO::PARAM_INT);
-                    } else {
-                        $statement->bindValue($key,$value,PDO::PARAM_STR);
-                    }
-                }
-            }
-            try {
-                $statement->execute();
-                return $statement->fetchAll();
-            } catch (Exception $e) {
-                throw $e;
-            }
-        }
-    }
 
-    public function SQLscript($script) {
-        if ($this->ConnectionStatus()) {
-            if (!is_string($script)){
-                trigger_error('wrong parameter supplied in SQLscript');exit;
-            }
-            $commands = explode(';',$script);
-            $success = true;
-            foreach($commands as $command) {
-                try {
-                    $this->pdo->exec($command);
-                } catch (Exception $e) {
-                    $success = false;
-                }
-            }
-            return $success;
-        }
-    }
-
-    //Object SQL Operations
-    public function tableObj_check($testObj) {
+    //Object Operations
+    public function eORM_table_objcheck($testObj) {
         if(get_parent_class($testObj) == 'eORM_table') {
             return true;
         } else {
-            trigger_error('eORM CRUD functions only available on eORM objects'); 
-            exit;
+            throw new Exception('Use eORM functions available to eORM objects only');
         }
     }
 
     public function insert(&$insertObj){
-        $this->tableObj_check($insertObj);
-        $insertObj->ID = $this->SQLexecute($insertObj->insertSQL());
+        $this->eORM_table_objcheck($insertObj);
+        $insertObj->ID = $this->database->execute($insertObj->insertSQL());
     }
 
     public function delete(&$deleteObj) {
-        $this->tableObj_check($deleteObj);
-        if($this->SQLexecute($deleteObj->deleteSQL())) {
-            $deleteObj = null;
-            return true;
-        } else { return false; }
+        $this->eORM_table_objcheck($deleteObj);
+        $suc = $this->database->execute($deleteObj->deleteSQL());
+        $deleteObj = null;
+        return $suc;
     }
 
     public function update($updateObj) {
-        $this->tableObj_check($updateObj);
-        return $this->SQLexecute($updateObj->updateSQL());
+        $this->eORM_table_objcheck($updateObj);
+        return $this->database->execute($updateObj->updateSQL());
     }
 
     public function query($classObj, $parameters,$offset = 0,$limit = 100){
-        $this->tableObj_check($classObj);
+        $this->eORM_table_objcheck($classObj);
         $class = get_class($classObj);
-        try {
-            $queryResult = $this->SQLquery($class::selectSQL($parameters,$offset,$limit));
-        } catch (Exception $e) { throw $e; }
+        
+        $queryResult = $this->database->query($class::selectSQL($parameters,$offset,$limit));
 
         if (count($queryResult) == 1){
-            $returnObj = new $class();
-            $returnObj->fill($queryResult[0]);
-            return $returnObj;
+            return $class::__set_state($queryResult);
         }
         $resultArr = array();
-        foreach($queryResult as $returnObj) {
-            $obj = new $class();
-
-            $obj->fill($returnObj);
-            array_push($resultArr,$obj);
+        foreach($queryResult as $objresult) {
+            array_push($resultArr,$class::__set_state($objresult));
         }
         return $resultArr;
     }
 
-    public function cons_check($obj){
-        if (! $this->tableObj_check($obj)) { trigger_error('call eORM only available on eORM objects'); exit; }
+    public function check($obj){
+        if (! $this->eORM_table_objcheck($obj));
         $class = get_class($obj);
-        $svobj = new $class(); 
-        $svobj->fill(
-            $this->SQLquery(
+        $svobj = $class::__set_state(
+            $this->database->query(
                 $obj->selfquerySQL()
             )[0]
-        );
+        ); 
         if($svobj == $obj) {
             return true;
         } else {
             return false;
         }
-
     }
 
+    //internal operations
 
-    //class functions
-    public function destroy() {
-        @unlink($this->config['db']);
-        if(file_exists($this->config['db'])) {
-            return false;
-        } else {
-            return true;
+    public function loadMap(){
+        if (!file_exists($this->models."/map.ini")) { 
+            throw new Exception('install DB before using eORM'); 
+        }
+        try {
+            @$map = parse_ini_file($this->models."/map.ini");
+        } catch(Exception $e) { throw new Exception('install DB before using eORM'); }
+        foreach ($map['classfiles'] as $classFile) {
+            try {
+                require($this->models."/$classFile");
+            } catch(Excpetion $e){
+                throw new Exception('Error in generated class '.$classFile); 
+            }
         }
     }
 
-    public function ConnectionStatus() {
-        if ($this->config != null) {
-            if ($this->pdo != null){
-                return true; 
-            } else {
+    public function map(){
+        @unlink($this->models.'/map.ini');
+        if(file_exists($this->models.'/map.ini')) { 
+            throw new Exception('cannot delete map.ini');        
+        }
+        foreach($this->database->tables() as $table=>$tablecontent) {        
+            $classFile = '<?php class '.$table.' extends eORM_table {';
+            foreach($tablecontent as $tableinfo){
+                $classFile .= 'public $'.$tableinfo.';';
+            }
+            $classFile .= 'public static $tablename = \''.$table.'\'; } ?>';
+            try {
+                file_put_contents($this->models.'/'.$table.'.php',$classFile);
+                file_put_contents($this->models.'/map.ini','classfiles[]="'.$table.".php\"\n",FILE_APPEND);
+            } catch (Exception $e) {
+                throw new Excpetion('cannot load table: '.$table);
+                throw $e;
                 return false;
             }
-        } else {
-            return false;
         }
+        return true;
     }
 
-    public function PDOconnect() {
-        if (!$this->ConnectionStatus()){
-            if(array_key_exists('db', $this->config)) {
-                try {
-                    print($this->config['db']);
-                    $this->pdo = new \PDO('sqlite:'.$this->config['db']);
-                    $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                } catch(\PDOException $e) {
-                    throw($e);
-                    return false;
-                }
-            }
-        }    
-        return $this->ConnectionStatus();
-    }
-
-    public function connect(){
-        if(is_dir($this->config['models'])) {
-        if (!file_exists($this->config['models']."/map.ini")) { trigger_error('configure database before using eORM');exit; }
-            try {
-                @$map = parse_ini_file($this->config['models']."/map.ini");
-            } catch(Exception $e) { trigger_error('configure database before using eORM'); exit; }
-        } else { trigger_error('configure config.ini before using eORM'); exit; }
+    public function install($newDatabase = false,$sqlscript = '') { 
+        if($newDatabase) {
+            if (!$this->database->destroy()) {
+                throw new Exception('cannot destroy database');
+            } 
+        }
+        if (! $this->database->connect()) {
+            throw new Exception('cannot connect to new database');
+        } 
         
-        require('eORM_table.php');
-        foreach ($map['classfiles'] as $classFile) {
-            require($this->config['models']."/$classFile");
-        }
-        return $this->PDOconnect();
-    }
-
-    public function createObjects(){
-        $htmlResponse = '<h3>Dynamical Class Generation</h3>';
-        @unlink($this->config['models'].'/map.ini');
-        if(!file_exists($this->config['models'].'/map.ini')) { 
-            $htmlResponse .= 'old map deleted';
-        } else {
-            $htmlResponse .= 'cannot delete old map';
-        } $htmlResponse = '<br>';
-        foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
-            if ($table['name'] == 'sqlite_sequence') { continue; }
-            $htmlResponse .= 'class: '.$table['name'].'<br>';
-            
-            $classFile = '<?php class '.$table['name'].' extends eORM_table {';
-            foreach($this->SQLquery('PRAGMA table_info('.$table['name'].');') as $tableinfo){
-                $classFile .= 'public $'.$tableinfo['name'].';';
-            }
-            $classFile .= 'public static $tablename = \''.$table['name'].'\'; } ?>';
-
-            file_put_contents($this->config['models'].'/'.$table['name'].'.php',$classFile);
-            file_put_contents($this->config['models'].'/map.ini','classfiles[]="'.$table['name'].".php\"\n",FILE_APPEND);
-        }
-        return $htmlResponse;
-    }
-
-    //these Functions will output HTML
-    public function admin_check($recreateDB=false) {
-        if(!isset($_POST['eORM_adminpassword']) || $_POST['eORM_adminpassword'] != $this->config['admin_password']) {
-            echo('
-            <p>please enter correct password</p>
-            <form action="?" method="post">
-            <input name="eORM_adminpassword" type="password"></input><br>');
-            if ($recreateDB) {
-            echo('Recreate Database<input type="checkbox" name="eORM_newDatabase" value="recreate Database"><br>');
-            }
-            echo('<input type="submit" value="GO"/>
-            </form>
-            <p>Warning: database will be deleted before recreation</p> 
-                    
-            </body></html>
-            ');
-            exit();
-        }
-    }
-
-    public function DBinstallation($sqlscript = '') {
-        if($sqlscript != '') {
-            $this->destroy();
-            $this->PDOconnect();
-            $this->SQLscript($sqlscript);
-            $this->createObjects();
-        } else {
-            $this->admin_check(true);
-            if(isset($_POST['eORM_newDatabase'])) {
-                $newDatabase = boolval($_POST['eORM_newDatabase']);
-            } else { $newDatabase = false; }
-            if($newDatabase) {
-                echo('<h3>destroy Database</h3>');
-                if ($this->destroy()) {
-                    echo('database deleted');
-                } else {
-                    echo('cannot delete database');
-                    echo('<br>this might cause some errors during the sql execution');
-                }
-            }
-            echo('<h3>Database Connection</h3>');
-            if ($this->PDOconnect()) {
-                echo('connection successfully established');
-            } else {
-                echo('error: cannot connect to database');
-            }
-            if($newDatabase) {
-                echo('<h3>Database Script</h3>');
+        if($newDatabase) {
+            if ($sqlscript==''){
                 try {
-                    $sqlscript = file_get_contents($this->config['dbscript']);
-                } catch(Exception $e) {
-                    trigger_error('Cannot read database script');
-                    throw $e;
-                    exit;
-                }
-                echo(str_replace("\n",'<br>',$sqlscript));
-                echo('<h3>Script execution</h3>');
-                try {
-                    if($this->SQLscript($sqlscript)) {
-                        echo ("script executed successfully");
-                    } else {
-                        echo ("script could not be executed");
-                    }
+                    $sqlscript = file_get_contents($this->config['model']['script']);
                 } catch (Exception $e) {
-                    echo ("error in script: $e");
-                    exit();
+                    throw new Exception('cannot load database script: '.$this->config['model']['script']);
                 }
             }
-            echo('<h3>Database Tables</h3>');
-            foreach($this->SQLquery('SELECT name FROM sqlite_master WHERE type="table";') as $table) {
-                echo($table['name']."<br>");
-            }
-            echo('<h3>Object Creation</h3>'.$this->createObjects());
-        }    
+            $this->database->script($sqlscript);
+        }
+        $this->map();
     }
 
-    public function DBdump(){
-        $this->admin_check();
-        if (array_key_exists('sqlite_path',$this->config)) {
-            $command = "\"".$this->config['sqlite_path']."\"";
-        } else { $command = 'sqlite3'; }
-        $command .= ' '.$this->config['db'].' .dump';
-        $result = str_replace("\n",'<br>',shell_exec($command));
-        if ($result == '') {
-            echo("error in sqlite3 configuration. Check config.ini and sqlite installation");
-        } else { echo($result); }
+    public function start(){
+        $this->loadMap();
+        if(!$this->database->conStatus()){
+            $this->database->connect();
+        }
     }
+
+    public function status(){
+        return $this->database->conStatus();
+    }
+
 
     //constructor
     public function __construct() {
+        require('sys/eORM_db.php');
+        require('sys/eORM_table.php');
         try {
-            $this->config = parse_ini_file('config.ini');
+            $this->config = parse_ini_file('config.ini',true);
         } catch(Exception $e) { 
-            trigger_error("configure config.ini before using eORM");
+            throw new Exception("configure config.ini before using eORM");
             throw $e; 
             exit;
         }
+        if (array_key_exists('db',$this->config)){
+            require('drivers/'.$this->config['db']['driver'].'.php');
+            $db_class = (string)$this->config['db']['driver'];
+            $this->database = new $db_class($this->config['db']);   
+        }
+        if(! isset($this->config['model']['folder'])){
+            throw new Exception('specify models folder in config');
+        } 
+        $this->models = $this->config['model']['folder'];
+        if(!is_dir($this->models)){
+            throw new Exception('models folder not existing: '.$this->models);        
+        } 
+        
      }
 
 

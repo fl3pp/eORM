@@ -16,15 +16,14 @@ class basic extends TestCase
     */
     public function test_dbInstallation($eORM)
     {
-        $eORM->DBinstallation('
+        $eORM->install('
         CREATE TABLE project(
             ID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             name VARCHAR(30)
         );
         ');
-        $eORM->connect();
-        $this->assertTrue($eORM->ConnectionStatus());
-        $this->assertFileExists($eORM->config['db']);
+        $eORM->start();
+        $this->assertTrue($eORM->status());
         $this->assertTrue(class_exists('project'));
 
         return $eORM;
@@ -53,10 +52,10 @@ class basic extends TestCase
     */
     public function test_consCheck($eORM,$projects) {
         foreach ($projects as $project) {
-            $this->assertTrue($eORM->cons_check($project));
+            $this->assertTrue($eORM->check($project));
         }
         $projects[1]->name = 'new name';
-        $this->assertFalse($eORM->cons_check($projects[1]));
+        $this->assertFalse($eORM->check($projects[1]));
     } 
 
     /**
@@ -68,11 +67,11 @@ class basic extends TestCase
         $eORM->insert($uproject);
         $this->assertInternalType('int',$uproject->ID);
         
-        $this->assertTrue($eORM->cons_check($uproject)); // returns true
+        $this->assertTrue($eORM->check($uproject)); // returns true
         $uproject->name = "new name";
-        $this->assertFalse($eORM->cons_check($uproject)); // returns false
+        $this->assertFalse($eORM->check($uproject)); // returns false
         $eORM->update($uproject);
-        $this->assertTrue($eORM->cons_check($uproject)); // returns true
+        $this->assertTrue($eORM->check($uproject)); // returns true
 
         return $uproject;
     }
@@ -82,7 +81,7 @@ class basic extends TestCase
     * @depends test_update
     */
     public function test_delete($eORM,$uproject){
-        $this->assertTrue($eORM->cons_check($uproject)); 
+        $this->assertTrue($eORM->check($uproject)); 
         $eORM->delete($uproject);
         $this->assertEquals(null,$uproject); 
     }

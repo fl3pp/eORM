@@ -1,5 +1,5 @@
 <?php
-abstract class eORM_table extends eORM_obj {
+abstract class eORM_table  {
     //public static $tablename in inheriting classes needed 
 
     public static function selectSQL(Array $param,$offset,$limit) {
@@ -111,17 +111,17 @@ abstract class eORM_table extends eORM_obj {
         return array('sql'=>'SELECT * FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID);
     }
 
-    public function fill($param) {
-        foreach($param as $key=>$value) {
-            if (property_exists($this,$key)){
-                if(is_numeric($value)){
-                    $this->$key = intval($value);
-                } else {
-                    $this->$key = $value;   
+
+    public static function __set_state($state) {
+        $newObj = new static();
+        if(is_array($state)) {
+            foreach($state as $key=>$value){
+                if(property_exists($newObj,$key)){
+                    $newObj->$key = $value;
                 }
             }
-        }
-        return $this;
+        } else { trigger_error('wrong parameter supplied in magic __set_state'); }
+        return $newObj;
     }
 }
 ?>
