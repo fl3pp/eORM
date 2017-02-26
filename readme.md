@@ -10,5 +10,4 @@ currently only supporting SQLite Databases
 
 ## todo
 - update readme
-- optional config path in constructor
 - wiki: starting now called start not connect
