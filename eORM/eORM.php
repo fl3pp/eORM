@@ -1,72 +1,10 @@
 <?php
 
-//use for magic functions
-
-
 class eORM {
     public $database;
     public $config; //Configuration loaded in the Constructor
 
 
-
-    //Object Operations
-    public function eORM_table_objcheck($testObj) {
-        if(get_parent_class($testObj) == 'eORM_table') {
-            return true;
-        } else {
-            throw new Exception('Use eORM functions available to eORM objects only');
-        }
-    }
-
-    public function insert(&$insertObj){
-        $this->eORM_table_objcheck($insertObj);
-        $insertObj->ID = $this->database->execute($insertObj->insertSQL());
-    }
-
-    public function delete(&$deleteObj) {
-        $this->eORM_table_objcheck($deleteObj);
-        $suc = $this->database->execute($deleteObj->deleteSQL());
-        $deleteObj = null;
-        return $suc;
-    }
-
-    public function update($updateObj) {
-        $this->eORM_table_objcheck($updateObj);
-        return $this->database->execute($updateObj->updateSQL());
-    }
-
-    public function query($classObj, $parameters,$offset = 0,$limit = 100){
-        $this->eORM_table_objcheck($classObj);
-        $class = get_class($classObj);
-        
-        $queryResult = $this->database->query($class::selectSQL($parameters,$offset,$limit));
-
-        if (count($queryResult) == 1){
-            return $class::__set_state($queryResult);
-        }
-        $resultArr = array();
-        foreach($queryResult as $objresult) {
-            array_push($resultArr,$class::__set_state($objresult));
-        }
-        return $resultArr;
-    }
-
-    public function check($obj){
-        if (! $this->eORM_table_objcheck($obj));
-        $class = get_class($obj);
-        $svobj = $class::__set_state(
-            $this->database->query(
-                $obj->selfquerySQL()
-            )[0]
-        ); 
-        if($svobj == $obj) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    //internal operations
 
     public function loadMap(){
         if (!file_exists($this->models."/map.ini")) { 
@@ -138,7 +76,11 @@ class eORM {
     }
 
     public function status(){
-        return $this->database->conStatus();
+        if(file_exists($this->models.'/map.ini')){
+            return $this->database->conStatus();
+        } else {
+            return false;
+        }
     }
 
 
@@ -172,6 +114,11 @@ class eORM {
      }
 
 
+}
+
+$eORM = new eORM();
+if(!$eORM->status()){
+    $eORM->start();
 }
 
 ?>

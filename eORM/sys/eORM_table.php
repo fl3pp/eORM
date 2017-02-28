@@ -2,8 +2,8 @@
 abstract class eORM_table  {
     //public static $tablename in inheriting classes needed 
 
-    public static function selectSQL(Array $param,$offset,$limit) {
-        $returnArr = array();
+    public static function query(Array $param,$offset = 0,$limit = 100) {
+        $selectArr = array();
         if (isset($param['sql'])) {
             $param['sql'] .= " OFFSET $offset LIMIT $limit";
             return $param;
@@ -19,7 +19,6 @@ abstract class eORM_table  {
                 }
                 $i++;
             }
-            $returnArr = array();
             $i = 0;
             foreach ($param as $key=>$value) {
                 if ($i > 0 && $i != count($param)) {
@@ -37,50 +36,61 @@ abstract class eORM_table  {
                     } else { $col = $key; }
                     if(array_key_exists('contains',$value)) {
                         $sqlSelect .= "$col LIKE :$key".$i;
-                        $returnArr[":$key".$i] = '%'.$value['contains'].'%';
+                        $selectArr[":$key".$i] = '%'.$value['contains'].'%';
                     } elseif(array_key_exists('start',$value)) {
                         $sqlSelect .= "$col LIKE :$key".$i;
-                        $returnArr[":$key".$i] = $value['start'].'%';
+                        $selectArr[":$key".$i] = $value['start'].'%';
                     } elseif(array_key_exists('end',$value)) {
                         $sqlSelect .= "$col LIKE :$key".$i;
-                        $returnArr[":$key".$i] = '%'.$value['end'];
+                        $selectArr[":$key".$i] = '%'.$value['end'];
                     } elseif(array_key_exists('is',$value)) {
                         $sqlSelect .= "$col=:$key".$i;
-                        $returnArr[":$key".$i] = $value['is'];
+                        $selectArr[":$key".$i] = $value['is'];
                     }
                 } elseif($value == 'OR') {} 
                 else {
                     $sqlSelect .= "$key=:$key".$i;
-                    $returnArr[":$key".$i] = $value;
+                    $selectArr[":$key".$i] = $value;
                 }
                 $i++;
             }
 
         }
-        $returnArr['sql'] = $sqlSelect." LIMIT $limit OFFSET $offset";
-        return $returnArr;
+        $selectArr['sql'] = $sqlSelect." LIMIT $limit OFFSET $offset";
+        
+        global $eORM;
+        $queryResult = $eORM->database->query($selectArr);
+        if (count($queryResult) == 1){
+            return $class::__set_state($queryResult);
+        }
+        $objs = array();
+        foreach($queryResult as $objresult) {
+            array_push($objs,static::__set_state($objresult));
+        }
+        return $objs;
     }   
 
-    public function updateSQL() {
-        $returnArr = array();
+    public function update() {
+        $updateArr = array();
         $updateSQL = "UPDATE ".static::$tablename." SET ";
         $i = 0;
         foreach($this as $key=>$value) {
             if($key != 'ID' && $key != 'tablename') {
                 if ($i > 0 && $i != count($this)) { $updateSQL .= ','; }
                 $updateSQL .= "$key=:$key ";
-                $returnArr[":$key"] = $value; 
+                $update[":$key"] = $value; 
             } 
             $i++;
         }
-        $returnArr['sql'] =  $updateSQL.'WHERE ID=:ID';
-        $returnArr[':ID'] = $this->ID;
-        return $returnArr;
+        $update['sql'] =  $updateSQL.'WHERE ID=:ID';
+        $update[':ID'] = $this->ID;
+        global $eORM;
+        return $eORM->database->execute($updateArr);
     }
 
-    public function insertSQL() {
+    public function insert() {
         $sqlInsert = 'INSERT INTO '.static::$tablename.'(ID,';
-        $statement = array();
+        $insertArr = array();
         $i = 0;
         foreach($this as $key=>$value) {
             if($key != 'tablename' && $key != 'ID') {
@@ -95,22 +105,49 @@ abstract class eORM_table  {
             if($key != 'tablename' && $key != 'ID') {
                 if ($i > 0 && $i != count($this) ) { $sqlInsert .= ","; }
                 $sqlInsert .= ":$key";
-                $statement[":$key"] = $value;
+                $insertArr[":$key"] = $value;
             } 
             $i++;
         }
-        $statement['sql'] = $sqlInsert.')';
-        return $statement;
+        $insertArr['sql'] = $sqlInsert.')';
+        global $eORM;
+        $this->ID = $eORM->database->execute($insertArr);
     }
 
-    public function deleteSQL() {
-        return array('sql'=>'DELETE FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID);
+    public function delete() {
+        global $eORM;
+        return $eORM->database->execute(array('sql'=>'DELETE FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID));
+        $this->__destruct();
     }
 
-    public function selfquerySQL(){
-        return array('sql'=>'SELECT * FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID);
+    public function save(){
+        $serverObj = $eORM->database->execute(array('sql'=>'SELECT * FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID)); 
+        if (is_array($serverObj)){
+            if (!$this == $serverObj) {
+                return $this->update();
+            } else {
+                return true;
+            }
+        } else {
+            return $this->insert();
+        }
     }
 
+    public function check(){
+        global $eORM;
+        $serverObj = static::set_state(
+            $eORM->database->query(
+               array('sql'=>'SELECT * FROM '.static::$tablename.' WHERE ID=:ID',':ID'=>$this->ID) 
+            )[0]
+        ); 
+        if($svobj == $this){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function __destruct(){}
 
     public static function __set_state($state) {
         $newObj = new static();

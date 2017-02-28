@@ -38,12 +38,12 @@ class basic extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $projects[$i] = new project;
             $projects[$i]->name = "name$i";
-            $eORM->insert($projects[$i]);
+            $projects[$i]->insert();
             $this->assertInternalType('int',$projects[$i]->ID);
         }
         $oldPro = new project();
         $oldPro->name = "oldname";
-        $eORM->insert($oldPro);
+        $oldPro->insert($oldPro);
         return $projects;
     }
 
