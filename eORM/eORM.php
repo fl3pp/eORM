@@ -42,7 +42,7 @@ class eORM {
         $queryResult = $this->database->query($class::selectSQL($parameters,$offset,$limit));
 
         if (count($queryResult) == 1){
-            return $class::__set_state($queryResult);
+            return $class::__set_state($queryResult[0]);
         }
         $resultArr = array();
         foreach($queryResult as $objresult) {
