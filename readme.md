@@ -10,4 +10,3 @@ currently only supporting SQLite Databases
 
 ## todo
 - update readme
-- wiki: starting now called start not connect
